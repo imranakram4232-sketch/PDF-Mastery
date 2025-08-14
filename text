@@ -1,0 +1,19 @@
+- index.html (Homepage)
+- features.html (Feature details)
+- tools/
+  - compress.html
+  - merge.html
+  - split.html
+  - convert.html
+  - protect.html
+- about.html
+- contact.html
+- blog/ (For SEO content)
+- assets/
+  - css/
+    - style.css
+    - responsive.css
+  - js/
+    - main.js
+    - pdf-functions.js
+  - images/
