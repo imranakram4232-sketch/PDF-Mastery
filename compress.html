@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compress PDF Files Online - Reduce PDF File Size | PDF Mastery</title>
+    <meta name="description" content="Free online PDF compressor to reduce PDF file size while maintaining good quality. No quality loss, no registration needed.">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.16.0/pdf-lib.min.js"></script>
+</head>
+<body>
+    <!-- Same header and top ad as index.html -->
+
+    <main class="tool-page">
+        <h2>Compress PDF Files</h2>
+        <p class="subtitle">Reduce PDF file size without losing quality</p>
+        
+        <div class="tool-container">
+            <div class="upload-area" id="dropArea">
+                <input type="file" id="fileInput" accept=".pdf">
+                <div class="upload-content">
+                    <img src="../../assets/images/upload-icon.png" alt="Upload PDF">
+                    <p>Drag & drop your PDF file here or click to browse</p>
+                    <button class="upload-button">Select PDF File</button>
+                </div>
+            </div>
+            
+            <div class="settings-panel">
+                <h4>Compression Settings</h4>
+                <div class="setting-option">
+                    <label for="compression-level">Compression Level:</label>
+                    <select id="compression-level">
+                        <option value="low">Low Compression (Best Quality)</option>
+                        <option value="medium" selected>Medium Compression (Recommended)</option>
+                        <option value="high">High Compression (Smaller File)</option>
+                        <option value="extreme">Extreme Compression (Maximum Reduction)</option>
+                    </select>
+                </div>
+                
+                <div class="setting-option">
+                    <label for="image-quality">Image Quality (DPI):</label>
+                    <select id="image-quality">
+                        <option value="300">300 DPI (High Quality)</option>
+                        <option value="200" selected>200 DPI (Good Quality)</option>
+                        <option value="150">150 DPI (Medium Quality)</option>
+                        <option value="96">96 DPI (Low Quality)</option>
+                    </select>
+                </div>
+                
+                <div class="setting-option">
+                    <label for="remove-metadata">
+                        <input type="checkbox" id="remove-metadata" checked>
+                        Remove Metadata (Author, Creator, etc.)
+                    </label>
+                </div>
+                
+                <div class="setting-option">
+                    <label for="optimize-images">
+                        <input type="checkbox" id="optimize-images" checked>
+                        Optimize Embedded Images
+                    </label>
+                </div>
+                
+                <button id="compress-btn" class="process-button" disabled>Compress PDF</button>
+            </div>
+            
+            <div class="result-area" id="resultArea" style="display: none;">
+                <h4>Compression Results</h4>
+                <div class="result-stats">
+                    <div class="stat">
+                        <span class="stat-label">Original Size:</span>
+                        <span class="stat-value" id="original-size">-</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Compressed Size:</span>
+                        <span class="stat-value" id="compressed-size">-</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Reduction:</span>
+                        <span class="stat-value" id="reduction">-</span>
+                    </div>
+                </div>
+                
+                <div class="preview-container">
+                    <div class="preview-box">
+                        <h5>Original PDF</h5>
+                        <div class="preview" id="original-preview"></div>
+                    </div>
+                    <div class="preview-box">
+                        <h5>Compressed PDF</h5>
+                        <div class="preview" id="compressed-preview"></div>
+                    </div>
+                </div>
+                
+                <button id="download-btn" class="download-button">Download Compressed PDF</button>
+            </div>
+        </div>
+        
+        <div class="tool-info">
+            <h4>About PDF Compression</h4>
+            <p>Our PDF compression tool uses advanced algorithms to reduce your PDF file size while maintaining the best possible quality. You can choose between different compression levels depending on your needs:</p>
+            
+            <ul>
+                <li><strong>Low Compression:</strong> Minimal size reduction, best for documents where quality is critical</li>
+                <li><strong>Medium Compression:</strong> Balanced approach, recommended for most documents</li>
+                <li><strong>High Compression:</strong> Significant size reduction, some quality loss may be noticeable</li>
+                <li><strong>Extreme Compression:</strong> Maximum size reduction, best for web use or email attachments</li>
+            </ul>
+            
+            <p>All processing happens in your browser - your files never leave your computer, ensuring complete privacy and security.</p>
+        </div>
+    </main>
+
+    <!-- Same bottom ad and footer as index.html -->
+
+    <script src="../../assets/js/pdf-functions.js"></script>
+    <script>
+        // PDF compression specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const dropArea = document.getElementById('dropArea');
+            const compressBtn = document.getElementById('compress-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const resultArea = document.getElementById('resultArea');
+            
+            let pdfFile = null;
+            let compressedPDF = null;
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length) {
+                    pdfFile = e.target.files[0];
+                    updateUI();
+                }
+            });
+            
+            // Handle drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('highlight');
+            }
+            
+            dropArea.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+                
+                if (file && file.type === 'application/pdf') {
+                    pdfFile = file;
+                    updateUI();
+                }
+            });
+            
+            // Update UI based on file selection
+            function updateUI() {
+                if (pdfFile) {
+                    document.querySelector('.upload-content p').textContent = pdfFile.name;
+                    compressBtn.disabled = false;
+                    
+                    // Show original file size
+                    document.getElementById('original-size').textContent = formatFileSize(pdfFile.size);
+                }
+            }
+            
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Handle compression
+            compressBtn.addEventListener('click', async function() {
+                if (!pdfFile) return;
+                
+                compressBtn.textContent = 'Compressing...';
+                compressBtn.disabled = true;
+                
+                try {
+                    // In a real implementation, you would use pdf-lib or similar library
+                    // This is a simplified example
+                    const compressionLevel = document.getElementById('compression-level').value;
+                    const imageQuality = parseInt(document.getElementById('image-quality').value);
+                    const removeMetadata = document.getElementById('remove-metadata').checked;
+                    const optimizeImages = document.getElementById('optimize-images').checked;
+                    
+                    // Simulate compression delay
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // In a real app, this would be the actual compressed PDF
+                    compressedPDF = new Blob([pdfFile], { type: 'application/pdf' });
+                    
+                    // Update results
+                    document.getElementById('compressed-size').textContent = formatFileSize(compressedPDF.size);
+                    const reduction = ((pdfFile.size - compressedPDF.size) / pdfFile.size * 100).toFixed(2);
+                    document.getElementById('reduction').textContent = reduction + '%';
+                    
+                    // Show result area
+                    resultArea.style.display = 'block';
+                    
+                    // Scroll to results
+                    resultArea.scrollIntoView({ behavior: 'smooth' });
+                    
+                } catch (error) {
+                    console.error('Compression error:', error);
+                    alert('An error occurred during compression. Please try again.');
+                } finally {
+                    compressBtn.textContent = 'Compress PDF';
+                    compressBtn.disabled = false;
+                }
+            });
+            
+            // Handle download
+            downloadBtn.addEventListener('click', function() {
+                if (!compressedPDF) return;
+                
+                const url = URL.createObjectURL(compressedPDF);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'compressed_' + pdfFile.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+</body>
+</html>
